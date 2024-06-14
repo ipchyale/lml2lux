@@ -1,0 +1,27 @@
+{
+  "@context": "https://linked.art/ns/v1/linked-art.json",
+  "id": "http://lod.example.org/museum/Group/company/kodak",
+  "type": "Group",
+  "_label": "Kodak",
+  "classified_as": [
+    {
+      "id": "http://vocab.getty.edu/aat/300160084",
+      "type": "Type",
+      "_label": "Company"
+    }
+  ],
+  "identified_by": [
+    {
+      "id": "http://lod.example.org/museum/Name/0",
+      "type": "Name",
+      "classified_as": [
+        {
+          "id": "http://vocab.getty.edu/aat/300404670",
+          "type": "Type",
+          "_label": "Primary Name"
+        }
+      ],
+      "content": "Kodak"
+    }
+  ]
+}

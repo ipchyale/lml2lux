@@ -20,8 +20,12 @@ def create_timespan(smp):
         return None
 
     year = str(year)
-    botb = f'{year}-01-01T00:00:00Z'
-    eote = f'{year}-12-31T23:59:59Z'
+    if uncertain:
+        botb = f'{year - 5}-01-01T00:00:00Z'
+        eote = f'{year + 5}-12-31T23:59:59Z'
+    else:
+        botb = f'{year}-01-01T00:00:00Z'
+        eote = f'{year}-12-31T23:59:59Z'
 
     if uncertain:
         dns = f'circa {year}'
