@@ -19,14 +19,14 @@ mans = [item for item in mans if item != '[Indeterminate]']
 output_dir = '/Users/damoncrockett/paperbase/lux/'
 os.makedirs(output_dir, exist_ok=True)  
 
-man_file_path = 'manufacturers.jsonl'
-bran_file_path = 'brands.jsonl'
-surf_file_path = 'surfaces.jsonl'
-backp_file_path = 'backprints.jsonl'
-xd_file_path = 'texture_descriptors.jsonl'
-gd_file_path = 'gloss_descriptors.jsonl'
-cd_file_path = 'color_descriptors.jsonl'
-td_file_path = 'thickness_descriptors.jsonl'
+man_file_path = 'JSONL/manufacturers.jsonl'
+bran_file_path = 'JSONL/brands.jsonl'
+surf_file_path = 'JSONL/surfaces.jsonl'
+backp_file_path = 'JSONL/backprints.jsonl'
+xd_file_path = 'JSONL/texture_descriptors.jsonl'
+gd_file_path = 'JSONL/gloss_descriptors.jsonl'
+cd_file_path = 'JSONL/color_descriptors.jsonl'
+td_file_path = 'JSONL/thickness_descriptors.jsonl'
 
 with open(man_file_path, 'w') as jsonl_file:
     for man in mans:
@@ -73,8 +73,8 @@ with open(man_file_path, 'w') as jsonl_file:
             assert len(bransafes) == 1
             bransafe = f'BRAN_{bransafes[0]}_MAN_{mansafes[0]}.json'
 
-            brand = model.Type(ident=f'https://paperbase.xyz/records/{bransafe}', label=bran)
-            brand.identified_by = vocab.PrimaryName(content=bran)
+            brand = model.Type(ident=f'https://paperbase.xyz/records/{bransafe}', label=f'{man} {bran}')
+            brand.identified_by = vocab.PrimaryName(content=f'{man} {bran}')
             brand.broader = model.Type(ident="http://vocab.getty.edu/aat/300389735", label="Brand Name Objects")
             brand.classified_as = model.Type(ident="http://vocab.getty.edu/aat/300028776", label="Trademark")
 
@@ -87,7 +87,7 @@ with open(man_file_path, 'w') as jsonl_file:
             equiv = equivs[0]
 
             if not pd.isna(equiv):
-                brand.equivalent = model.Group(ident=equiv, label=bran)
+                brand.equivalent = model.Group(ident=equiv, label=f'{man} {bran}')
 
             # Convert to JSON
             js = model.factory.toJSON(brand)
@@ -107,12 +107,12 @@ with open(man_file_path, 'w') as jsonl_file:
         for surf in surfs:
             thissurf = thisman.loc[thisman.s == surf]
 
-            surfsafes = thissurf.s.unique()
+            surfsafes = thissurf.ssafe.unique()
             assert len(surfsafes) == 1
             surfsafe = f'SURF_{surfsafes[0]}_MAN_{mansafes[0]}.json'
 
-            surface = model.Type(ident=f'https://paperbase.xyz/records/{surfsafe}', label=surf)
-            surface.identified_by = vocab.PrimaryName(content=surf)
+            surface = model.Type(ident=f'https://paperbase.xyz/records/{surfsafe}', label=f'{man} {surf}')
+            surface.identified_by = vocab.PrimaryName(content=f'{man} {surf}')
             surface.broader = model.Type(ident="http://vocab.getty.edu/aat/300375551", label="Brand Name Materials")
 
             cre = model.Creation()
@@ -136,13 +136,12 @@ with open(man_file_path, 'w') as jsonl_file:
         for backp in backps:
             thisbackp = thisman.loc[thisman.backp == backp]
 
-            backpsafes = thisbackp.backp.unique()
+            backpsafes = thisbackp.backpsafe.unique()
             assert len(backpsafes) == 1
             backpsafe = f'BACKP_{backpsafes[0]}_MAN_{mansafes[0]}.json'
 
-            backprint = model.Type(ident=f'https://paperbase.xyz/records/{backpsafe}', label=f'{man} {backp}')
+            backprint = model.VisualItem(ident=f'https://paperbase.xyz/records/{backpsafe}', label=f'{man} {backp}')
             backprint.identified_by = vocab.PrimaryName(content=f'{man} {backp}')
-            backprint.classified_as = model.Type(ident="http://vocab.getty.edu/aat/300438445", label="Wordmark")
 
             cre = model.Creation()
             cre.carried_out_by = manufacturer
@@ -166,12 +165,12 @@ with open(man_file_path, 'w') as jsonl_file:
         for xd in xds:
             thisxd = thisman.loc[thisman.xd == xd]
 
-            xdsafes = thisxd.xd.unique()
+            xdsafes = thisxd.xdsafe.unique()
             assert len(xdsafes) == 1
             xdsafe = f'XD_{xdsafes[0]}_MAN_{mansafes[0]}.json'
 
-            texture_descriptor = model.Type(ident=f'https://paperbase.xyz/records/{xdsafe}', label=xd)
-            texture_descriptor.identified_by = vocab.PrimaryName(content=xd)
+            texture_descriptor = model.Type(ident=f'https://paperbase.xyz/records/{xdsafe}', label=f'{man} {xd}')
+            texture_descriptor.identified_by = vocab.PrimaryName(content=f'{man} {xd}')
             texture_descriptor.broader = model.Type(ident="http://vocab.getty.edu/aat/300375551", label="Brand Name Materials")
             texture_descriptor.classified_as = model.Type(ident="http://vocab.getty.edu/aat/300056362", label="Texture")
 
@@ -197,12 +196,12 @@ with open(man_file_path, 'w') as jsonl_file:
         for gd in gds:
             thisgd = thisman.loc[thisman.gd == gd]
 
-            gdsafes = thisgd.gd.unique()
+            gdsafes = thisgd.gdsafe.unique()
             assert len(gdsafes) == 1
             gdsafe = f'GD_{gdsafes[0]}_MAN_{mansafes[0]}.json'
 
-            gloss_descriptor = model.Type(ident=f'https://paperbase.xyz/records/{gdsafe}', label=gd)
-            gloss_descriptor.identified_by = vocab.PrimaryName(content=gd)
+            gloss_descriptor = model.Type(ident=f'https://paperbase.xyz/records/{gdsafe}', label=f'{man} {gd}')
+            gloss_descriptor.identified_by = vocab.PrimaryName(content=f'{man} {gd}')
             gloss_descriptor.broader = model.Type(ident="http://vocab.getty.edu/aat/300375551", label="Brand Name Materials")
             gloss_descriptor.classified_as = model.Type(ident="http://vocab.getty.edu/aat/300179475", label="Reflectance")
 
@@ -228,12 +227,12 @@ with open(man_file_path, 'w') as jsonl_file:
         for cd in cds:
             thiscd = thisman.loc[thisman.cd == cd]
 
-            cdsafes = thiscd.cd.unique()
+            cdsafes = thiscd.cdsafe.unique()
             assert len(cdsafes) == 1
             cdsafe = f'CD_{cdsafes[0]}_MAN_{mansafes[0]}.json'
 
-            color_descriptor = model.Type(ident=f'https://paperbase.xyz/records/{cdsafe}', label=cd)
-            color_descriptor.identified_by = vocab.PrimaryName(content=cd)
+            color_descriptor = model.Type(ident=f'https://paperbase.xyz/records/{cdsafe}', label=f'{man} {cd}')
+            color_descriptor.identified_by = vocab.PrimaryName(content=f'{man} {cd}')
             color_descriptor.broader = model.Type(ident="http://vocab.getty.edu/aat/300375551", label="Brand Name Materials")
             color_descriptor.classified_as = model.Type(ident="http://vocab.getty.edu/aat/300080438", label="Color")
 
@@ -259,12 +258,12 @@ with open(man_file_path, 'w') as jsonl_file:
         for td in tds:
             thistd = thisman.loc[thisman.td == td]
 
-            tdsafes = thistd.td.unique()
+            tdsafes = thistd.tdsafe.unique()
             assert len(tdsafes) == 1
             tdsafe = f'TD_{tdsafes[0]}_MAN_{mansafes[0]}.json'
 
-            thickness_descriptor = model.Type(ident=f'https://paperbase.xyz/records/{tdsafe}', label=td)
-            thickness_descriptor.identified_by = vocab.PrimaryName(content=td)
+            thickness_descriptor = model.Type(ident=f'https://paperbase.xyz/records/{tdsafe}', label=f'{man} {td}')
+            thickness_descriptor.identified_by = vocab.PrimaryName(content=f'{man} {td}')
             thickness_descriptor.broader = model.Type(ident="http://vocab.getty.edu/aat/300375551", label="Brand Name Materials")
             thickness_descriptor.classified_as = model.Type(ident="http://vocab.getty.edu/aat/300056240", label="Weight")
 
