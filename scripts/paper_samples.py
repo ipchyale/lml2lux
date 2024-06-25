@@ -102,7 +102,7 @@ with open('JSONL/paper_samples.jsonl', 'w') as f:
         # Texture, Reflectance, Color, Weight -- classifications
         # TODO - these need metatypes to convey the sort of classification
         
-        if smp.brand != '[Indeterminate]':
+        if smp.bran != '[Indeterminate]':
             if pd.isna(smp.branid):
                 paper.classified_as = model.Type(ident=f'https://paperbase.xyz/records/BRAN_{smp.bransafe}_MAN_{smp.mansafe}.json', label=f'{smp.man} {smp.bran}')
             else:
