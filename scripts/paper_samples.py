@@ -51,9 +51,10 @@ with open('JSONL/paper_samples.jsonl', 'w') as f:
     for i in df.index:
 
         smp = df.iloc[i]
+        catalog = smp['cat']
 
         # PhotoID to URI
-        paper = model.HumanMadeObject(ident=smp['cat'], label=record_label(smp))
+        paper = model.HumanMadeObject(ident=f'https://paperbase.xyz/records/PS_{catalog}', label=record_label(smp))
 
         # Year, DateUncertain to Prod/Date
         prod = model.Production()
@@ -71,7 +72,7 @@ with open('JSONL/paper_samples.jsonl', 'w') as f:
         # Catalog Number, Secondary Catalog Number
         # No information about the thing with this number
         # Smush it in as call number by merging
-        paper.identified_by = model.Identifier(content=smp['cat'])
+        paper.identified_by = model.Identifier(content=catalog)
 
         # Manufacturer = Group that made this thing
         # There needs to be a separate record with a Name
