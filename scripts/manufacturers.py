@@ -33,6 +33,13 @@ with open(man_file_path, 'w') as jsonl_file:
 
         thisman = df.loc[df.man == man]
 
+        equivs = thisman.manid.unique()
+        assert len(equivs) == 1
+        equiv = equivs[0]
+        
+        if pd.isna(equiv):
+            continue
+
         mansafes = thisman.mansafe.unique()
         assert len(mansafes) == 1
         mansafe = f'MAN_{mansafes[0]}.json'
@@ -41,13 +48,6 @@ with open(man_file_path, 'w') as jsonl_file:
         manufacturer.identified_by = vocab.PrimaryName(content=man)
         manufacturer.classified_as = model.Type(ident="http://vocab.getty.edu/aat/300160084", 
                                         label="Company")
-       
-        equivs = thisman.manid.unique()
-        assert len(equivs) == 1
-        equiv = equivs[0]
-        
-        if not pd.isna(equiv):
-            manufacturer.equivalent = model.Group(ident=equiv, label=man)
 
         # Convert to JSON
         js = model.factory.toJSON(manufacturer)
@@ -69,25 +69,25 @@ with open(man_file_path, 'w') as jsonl_file:
         for bran in brans:
             thisbran = thisman.loc[thisman.bran == bran]
 
+            equivs = thisbran.branid.unique()
+            assert len(equivs) == 1
+            equiv = equivs[0]
+
+            if pd.isna(equiv):
+                continue
+
             bransafes = thisbran.bransafe.unique()
             assert len(bransafes) == 1
             bransafe = f'BRAN_{bransafes[0]}_MAN_{mansafes[0]}.json'
 
             brand = model.Type(ident=f'https://paperbase.xyz/records/{bransafe}', label=f'{man} {bran}')
             brand.identified_by = vocab.PrimaryName(content=f'{man} {bran}')
-            brand.broader = model.Type(ident="http://vocab.getty.edu/aat/300389735", label="Brand Name Objects")
+            brand.broader = model.Type(ident="http://vocab.getty.edu/aat/300389735", label="Brand Name Materials")
             brand.classified_as = model.Type(ident="http://vocab.getty.edu/aat/300028776", label="Trademark")
 
             cre = model.Creation()
             cre.carried_out_by = manufacturer
             brand.created_by = cre
-
-            equivs = thisbran.branid.unique()
-            assert len(equivs) == 1
-            equiv = equivs[0]
-
-            if not pd.isna(equiv):
-                brand.equivalent = model.Group(ident=equiv, label=f'{man} {bran}')
 
             # Convert to JSON
             js = model.factory.toJSON(brand)
@@ -140,8 +140,9 @@ with open(man_file_path, 'w') as jsonl_file:
             assert len(backpsafes) == 1
             backpsafe = f'BACKP_{backpsafes[0]}_MAN_{mansafes[0]}.json'
 
-            backprint = model.VisualItem(ident=f'https://paperbase.xyz/records/{backpsafe}', label=f'{man} {backp}')
-            backprint.identified_by = vocab.PrimaryName(content=f'{man} {backp}')
+            backprint = model.VisualItem(ident=f'https://paperbase.xyz/records/{backpsafe}', label=f'{man} {backp} Backprint')
+            backprint.identified_by = vocab.PrimaryName(content=f'{man} {backp} Backprint')
+            backprint.classified_as = model.Type(ident="http://vocab.getty.edu/aat/300438445", label="Wordmark")
 
             cre = model.Creation()
             cre.carried_out_by = manufacturer
@@ -167,16 +168,15 @@ with open(man_file_path, 'w') as jsonl_file:
 
             xdsafes = thisxd.xdsafe.unique()
             assert len(xdsafes) == 1
-            xdsafe = f'XD_{xdsafes[0]}_MAN_{mansafes[0]}.json'
+            xdsafe = f'XD_{xdsafes[0]}.json'
 
-            texture_descriptor = model.Type(ident=f'https://paperbase.xyz/records/{xdsafe}', label=f'{man} {xd}')
-            texture_descriptor.identified_by = vocab.PrimaryName(content=f'{man} {xd}')
-            texture_descriptor.broader = model.Type(ident="http://vocab.getty.edu/aat/300375551", label="Brand Name Materials")
+            texture_descriptor = model.Type(ident=f'https://paperbase.xyz/records/{xdsafe}', label=xd)
+            texture_descriptor.identified_by = vocab.PrimaryName(content=xd)
             texture_descriptor.classified_as = model.Type(ident="http://vocab.getty.edu/aat/300056362", label="Texture")
 
-            cre = model.Creation()
-            cre.carried_out_by = manufacturer
-            texture_descriptor.created_by = cre
+            # cre = model.Creation()
+            # cre.carried_out_by = manufacturer
+            # texture_descriptor.created_by = cre
 
             # Convert to JSON
             js = model.factory.toJSON(texture_descriptor)
@@ -198,16 +198,15 @@ with open(man_file_path, 'w') as jsonl_file:
 
             gdsafes = thisgd.gdsafe.unique()
             assert len(gdsafes) == 1
-            gdsafe = f'GD_{gdsafes[0]}_MAN_{mansafes[0]}.json'
+            gdsafe = f'GD_{gdsafes[0]}.json'
 
-            gloss_descriptor = model.Type(ident=f'https://paperbase.xyz/records/{gdsafe}', label=f'{man} {gd}')
-            gloss_descriptor.identified_by = vocab.PrimaryName(content=f'{man} {gd}')
-            gloss_descriptor.broader = model.Type(ident="http://vocab.getty.edu/aat/300375551", label="Brand Name Materials")
+            gloss_descriptor = model.Type(ident=f'https://paperbase.xyz/records/{gdsafe}', label=gd)
+            gloss_descriptor.identified_by = vocab.PrimaryName(content=gd)
             gloss_descriptor.classified_as = model.Type(ident="http://vocab.getty.edu/aat/300179475", label="Reflectance")
 
-            cre = model.Creation()
-            cre.carried_out_by = manufacturer
-            gloss_descriptor.created_by = cre
+            # cre = model.Creation()
+            # cre.carried_out_by = manufacturer
+            # gloss_descriptor.created_by = cre
 
             # Convert to JSON
             js = model.factory.toJSON(gloss_descriptor)
@@ -229,16 +228,15 @@ with open(man_file_path, 'w') as jsonl_file:
 
             cdsafes = thiscd.cdsafe.unique()
             assert len(cdsafes) == 1
-            cdsafe = f'CD_{cdsafes[0]}_MAN_{mansafes[0]}.json'
+            cdsafe = f'CD_{cdsafes[0]}.json'
 
-            color_descriptor = model.Type(ident=f'https://paperbase.xyz/records/{cdsafe}', label=f'{man} {cd}')
-            color_descriptor.identified_by = vocab.PrimaryName(content=f'{man} {cd}')
-            color_descriptor.broader = model.Type(ident="http://vocab.getty.edu/aat/300375551", label="Brand Name Materials")
+            color_descriptor = model.Type(ident=f'https://paperbase.xyz/records/{cdsafe}', label=cd)
+            color_descriptor.identified_by = vocab.PrimaryName(content=cd)
             color_descriptor.classified_as = model.Type(ident="http://vocab.getty.edu/aat/300080438", label="Color")
 
-            cre = model.Creation()
-            cre.carried_out_by = manufacturer
-            color_descriptor.created_by = cre
+            # cre = model.Creation()
+            # cre.carried_out_by = manufacturer
+            # color_descriptor.created_by = cre
 
             # Convert to JSON
             js = model.factory.toJSON(color_descriptor)
@@ -260,16 +258,15 @@ with open(man_file_path, 'w') as jsonl_file:
 
             tdsafes = thistd.tdsafe.unique()
             assert len(tdsafes) == 1
-            tdsafe = f'TD_{tdsafes[0]}_MAN_{mansafes[0]}.json'
+            tdsafe = f'TD_{tdsafes[0]}.json'
 
-            thickness_descriptor = model.Type(ident=f'https://paperbase.xyz/records/{tdsafe}', label=f'{man} {td}')
-            thickness_descriptor.identified_by = vocab.PrimaryName(content=f'{man} {td}')
-            thickness_descriptor.broader = model.Type(ident="http://vocab.getty.edu/aat/300375551", label="Brand Name Materials")
+            thickness_descriptor = model.Type(ident=f'https://paperbase.xyz/records/{tdsafe}', label=td)
+            thickness_descriptor.identified_by = vocab.PrimaryName(content=td)
             thickness_descriptor.classified_as = model.Type(ident="http://vocab.getty.edu/aat/300056240", label="Weight")
 
-            cre = model.Creation()
-            cre.carried_out_by = manufacturer
-            thickness_descriptor.created_by = cre
+            # cre = model.Creation()
+            # cre.carried_out_by = manufacturer
+            # thickness_descriptor.created_by = cre
 
             # Convert to JSON
             js = model.factory.toJSON(thickness_descriptor)

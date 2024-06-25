@@ -3,10 +3,10 @@ from cromulent import model, vocab
 import json
 import os
 
-def record_label(rec):
-    man = rec.man
-    bran = rec.bran
-    year = str(rec.year)
+def record_label(smp):
+    man = smp.fillna('[Indeterminate]').man
+    bran = smp.bran
+    year = str(smp.year)
 
     return f'{man} {bran} {year}'
 
@@ -35,7 +35,7 @@ def create_timespan(smp):
     return botb, eote, dns
 
 def name_constructor(smp):
-    man = smp.man
+    man = smp.fillna('[Indeterminate]').man
     bran = smp.bran
 
     return f'{man} {bran} Paper from {create_timespan(smp)[2]}'
@@ -66,6 +66,8 @@ with open('JSONL/paper_samples.jsonl', 'w') as f:
         ts.identified_by = dn
         prod.timespan = ts
 
+        # paper.classified_as = model.Type(ident=smp.processlink, label=smp.processname)
+
         # Catalog Number, Secondary Catalog Number
         # No information about the thing with this number
         # Smush it in as call number by merging
@@ -73,7 +75,11 @@ with open('JSONL/paper_samples.jsonl', 'w') as f:
 
         # Manufacturer = Group that made this thing
         # There needs to be a separate record with a Name
-        prod.carried_out_by = model.Group(ident=f'https://paperbase.xyz/records/MAN_{smp.mansafe}.json', label=smp.man)
+        if smp.fillna('[Indeterminate]').man != '[Indeterminate]':
+            if pd.isna(smp.manid):
+                prod.carried_out_by = model.Group(ident=f'https://paperbase.xyz/records/MAN_{smp.mansafe}.json', label=smp.man)
+            else:
+                prod.carried_out_by = model.Group(ident=smp.manid, label=smp.man)
 
         # But ... We need a name
         # Construct it from multiple fields?
@@ -81,32 +87,47 @@ with open('JSONL/paper_samples.jsonl', 'w') as f:
 
         # Format = Description
         # paper.referred_to_by = vocab.Description(content=smp.Format)
-        if smp.storfor == 'Package only':
-            paper.classified_as = model.Type(ident="http://vocab.getty.edu/aat/300055100", label="Packaging")
-        else:
-            paper.classified_as = model.Type(ident="http://vocab.getty.edu/aat/300014190", label="Photographic Paper")
+        if not pd.isna(smp.storfor):
+            if smp.storfor == 'Package only':
+                paper.classified_as = model.Type(ident="http://vocab.getty.edu/aat/300055100", label="Packaging")
+            else:
+                paper.classified_as = model.Type(ident="http://vocab.getty.edu/aat/300014190", label="Photographic Paper")
 
-        if smp.storfor != 'Sample book':
-            # metatype: http://vocab.getty.edu/aat/300248479
-            paper.referred_to_by = model.LinguisticObject(content=f'Box {smp.locbox}, Bag {smp.locbag}')
+            if all([smp.storfor != 'Sample book', not pd.isna(smp.locbox), not pd.isna(smp.locbag)]):
+                # metatype: http://vocab.getty.edu/aat/300248479
+                paper.referred_to_by = model.LinguisticObject(content=f'Box {smp.locbox}, Bag {smp.locbag}')
 
-        # Not sure what to do about surface designation -- statement? Not comprehensible by itself
         # TODO: add a custom display label "Manufacturer Surface Designation" (or something)
-        #paper.referred_to_by = vocab.Note(content=smp.SurfaceDesignation2)
 
         # Texture, Reflectance, Color, Weight -- classifications
         # TODO - these need metatypes to convey the sort of classification
-        paper.classified_as = model.Type(ident=f'https://paperbase.xyz/records/BRAN_{smp.bransafe}_MAN_{smp.mansafe}.json', label=f'{smp.man} {smp.bran}')
-        paper.classified_as = model.Type(ident=f'https://paperbase.xyz/records/SURF_{smp.ssafe}_MAN_{smp.mansafe}.json', label=f'{smp.man} {smp.s}')
-        paper.classified_as = model.Type(ident=f'https://paperbase.xyz/records/XD_{smp.xdsafe}_MAN_{smp.mansafe}.json', label=f'{smp.man} {smp.xd}')
-        paper.classified_as = model.Type(ident=f'https://paperbase.xyz/records/GD_{smp.gdsafe}_MAN_{smp.mansafe}.json', label=f'{smp.man} {smp.gd}')
-        paper.classified_as = model.Type(ident=f'https://paperbase.xyz/records/CD_{smp.cdsafe}_MAN_{smp.mansafe}.json', label=f'{smp.man} {smp.cd}')
-        paper.classified_as = model.Type(ident=f'https://paperbase.xyz/records/TD_{smp.tdsafe}_MAN_{smp.mansafe}.json', label=f'{smp.man} {smp.td}')
+        
+        if smp.brand != '[Indeterminate]':
+            if pd.isna(smp.branid):
+                paper.classified_as = model.Type(ident=f'https://paperbase.xyz/records/BRAN_{smp.bransafe}_MAN_{smp.mansafe}.json', label=f'{smp.man} {smp.bran}')
+            else:
+                paper.classified_as = model.Type(ident=smp.branid, label=smp.bran)
+        
+        if smp.fillna('[not specified]').s != '[not specified]':
+            paper.classified_as = model.Type(ident=f'https://paperbase.xyz/records/SURF_{smp.ssafe}_MAN_{smp.mansafe}.json', label=f'{smp.man} {smp.s}')
+        
+        if smp.xd != '[texture unspecified]':
+            paper.classified_as = model.Type(ident=f'https://paperbase.xyz/records/XD_{smp.xdsafe}.json', label=f'{smp.xd}')
 
-        paper.classified_as = model.Type(ident=smp.processlink, label=smp.processname)
+        if smp.gd != '[gloss unspecified]':
+            paper.classified_as = model.Type(ident=f'https://paperbase.xyz/records/GD_{smp.gdsafe}.json', label=f'{smp.gd}')
 
-        paper.shows = model.VisualItem(ident=f'https://paperbase.xyz/records/BACKP_{smp.backpsafe}_MAN_{smp.mansafe}.json', label=f'{smp.man} {smp.backp}')
+        if smp.cd != '[base color unspecified]':
+            paper.classified_as = model.Type(ident=f'https://paperbase.xyz/records/CD_{smp.cdsafe}.json', label=f'{smp.cd}')
+
+        if smp.td != '[weight unspecified]':
+            paper.classified_as = model.Type(ident=f'https://paperbase.xyz/records/WD_{smp.tdsafe}.json', label=f'{smp.td}')
+
+        if not pd.isna(smp.backp):
+            paper.shows = model.VisualItem(ident=f'https://paperbase.xyz/records/BACKP_{smp.backpsafe}_MAN_{smp.mansafe}.json', label=f'{smp.man} {smp.backp}')
         
         js = model.factory.toJSON(paper)
         rec = json.dumps(js)
         f.write(rec + '\n')
+
+        # TODO: still need individual files for each record
