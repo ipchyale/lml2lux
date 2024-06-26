@@ -122,7 +122,7 @@ with open('JSONL/paper_samples.jsonl', 'w') as f:
             paper.classified_as = model.Type(ident=f'https://paperbase.xyz/records/CD_{smp.cdsafe}.json', label=f'{smp.cd}')
 
         if smp.td != '[weight unspecified]':
-            paper.classified_as = model.Type(ident=f'https://paperbase.xyz/records/WD_{smp.tdsafe}.json', label=f'{smp.td}')
+            paper.classified_as = model.Type(ident=f'https://paperbase.xyz/records/TD_{smp.tdsafe}.json', label=f'{smp.td}')
 
         if not pd.isna(smp.backp):
             paper.shows = model.VisualItem(ident=f'https://paperbase.xyz/records/BACKP_{smp.backpsafe}_MAN_{smp.mansafe}.json', label=f'{smp.man} {smp.backp}')

@@ -23,21 +23,22 @@ man_file_path = 'JSONL/manufacturers.jsonl'
 bran_file_path = 'JSONL/brands.jsonl'
 surf_file_path = 'JSONL/surfaces.jsonl'
 backp_file_path = 'JSONL/backprints.jsonl'
-xd_file_path = 'JSONL/texture_descriptors.jsonl'
-gd_file_path = 'JSONL/gloss_descriptors.jsonl'
-cd_file_path = 'JSONL/color_descriptors.jsonl'
-td_file_path = 'JSONL/thickness_descriptors.jsonl'
+
+# clear out the JSONL files
+open(bran_file_path, 'w').close()
+open(surf_file_path, 'w').close()
+open(backp_file_path, 'w').close()
 
 with open(man_file_path, 'w') as jsonl_file:
     for man in mans:
-
+ 
         thisman = df.loc[df.man == man]
 
         equivs = thisman.manid.unique()
         assert len(equivs) == 1
         equiv = equivs[0]
         
-        if pd.isna(equiv):
+        if not pd.isna(equiv):
             continue
 
         mansafes = thisman.mansafe.unique()
@@ -73,7 +74,7 @@ with open(man_file_path, 'w') as jsonl_file:
             assert len(equivs) == 1
             equiv = equivs[0]
 
-            if pd.isna(equiv):
+            if not pd.isna(equiv):
                 continue
 
             bransafes = thisbran.bransafe.unique()
@@ -154,126 +155,6 @@ with open(man_file_path, 'w') as jsonl_file:
 
             # Write to individual JSON file
             filename = backpsafe
-            file_path = os.path.join(output_dir, filename)
-            with open(file_path, 'w') as individual_file:
-                rec = json.dumps(js)
-                individual_file.write(rec)
-
-        # texture descriptors under this man
-        xds = thisman.xd.loc[thisman.xd.notnull()].unique()
-        xds = [item for item in xds if item != '[texture unspecified]']
-
-        for xd in xds:
-            thisxd = thisman.loc[thisman.xd == xd]
-
-            xdsafes = thisxd.xdsafe.unique()
-            assert len(xdsafes) == 1
-            xdsafe = f'XD_{xdsafes[0]}.json'
-
-            texture_descriptor = model.Type(ident=f'https://paperbase.xyz/records/{xdsafe}', label=xd)
-            texture_descriptor.identified_by = vocab.PrimaryName(content=xd)
-            texture_descriptor.classified_as = model.Type(ident="http://vocab.getty.edu/aat/300056362", label="Texture")
-
-            # cre = model.Creation()
-            # cre.carried_out_by = manufacturer
-            # texture_descriptor.created_by = cre
-
-            # Convert to JSON
-            js = model.factory.toJSON(texture_descriptor)
-            add_record_to_jsonl(js, xd_file_path)
-
-            # Write to individual JSON file
-            filename = xdsafe
-            file_path = os.path.join(output_dir, filename)
-            with open(file_path, 'w') as individual_file:
-                rec = json.dumps(js)
-                individual_file.write(rec)
-
-        # gloss descriptors under this man
-        gds = thisman.gd.loc[thisman.gd.notnull()].unique()
-        gds = [item for item in gds if item != '[gloss unspecified]']
-
-        for gd in gds:
-            thisgd = thisman.loc[thisman.gd == gd]
-
-            gdsafes = thisgd.gdsafe.unique()
-            assert len(gdsafes) == 1
-            gdsafe = f'GD_{gdsafes[0]}.json'
-
-            gloss_descriptor = model.Type(ident=f'https://paperbase.xyz/records/{gdsafe}', label=gd)
-            gloss_descriptor.identified_by = vocab.PrimaryName(content=gd)
-            gloss_descriptor.classified_as = model.Type(ident="http://vocab.getty.edu/aat/300179475", label="Reflectance")
-
-            # cre = model.Creation()
-            # cre.carried_out_by = manufacturer
-            # gloss_descriptor.created_by = cre
-
-            # Convert to JSON
-            js = model.factory.toJSON(gloss_descriptor)
-            add_record_to_jsonl(js, gd_file_path)
-
-            # Write to individual JSON file
-            filename = gdsafe
-            file_path = os.path.join(output_dir, filename)
-            with open(file_path, 'w') as individual_file:
-                rec = json.dumps(js)
-                individual_file.write(rec)
-
-        # color descriptors under this man
-        cds = thisman.cd.loc[thisman.cd.notnull()].unique()
-        cds = [item for item in cds if item != '[base color unspecified]']
-
-        for cd in cds:
-            thiscd = thisman.loc[thisman.cd == cd]
-
-            cdsafes = thiscd.cdsafe.unique()
-            assert len(cdsafes) == 1
-            cdsafe = f'CD_{cdsafes[0]}.json'
-
-            color_descriptor = model.Type(ident=f'https://paperbase.xyz/records/{cdsafe}', label=cd)
-            color_descriptor.identified_by = vocab.PrimaryName(content=cd)
-            color_descriptor.classified_as = model.Type(ident="http://vocab.getty.edu/aat/300080438", label="Color")
-
-            # cre = model.Creation()
-            # cre.carried_out_by = manufacturer
-            # color_descriptor.created_by = cre
-
-            # Convert to JSON
-            js = model.factory.toJSON(color_descriptor)
-            add_record_to_jsonl(js, cd_file_path)
-
-            # Write to individual JSON file
-            filename = cdsafe
-            file_path = os.path.join(output_dir, filename)
-            with open(file_path, 'w') as individual_file:
-                rec = json.dumps(js)
-                individual_file.write(rec)
-
-        # thickness descriptors under this man
-        tds = thisman.td.loc[thisman.td.notnull()].unique()
-        tds = [item for item in tds if item != '[weight unspecified]']
-
-        for td in tds:
-            thistd = thisman.loc[thisman.td == td]
-
-            tdsafes = thistd.tdsafe.unique()
-            assert len(tdsafes) == 1
-            tdsafe = f'TD_{tdsafes[0]}.json'
-
-            thickness_descriptor = model.Type(ident=f'https://paperbase.xyz/records/{tdsafe}', label=td)
-            thickness_descriptor.identified_by = vocab.PrimaryName(content=td)
-            thickness_descriptor.classified_as = model.Type(ident="http://vocab.getty.edu/aat/300056240", label="Weight")
-
-            # cre = model.Creation()
-            # cre.carried_out_by = manufacturer
-            # thickness_descriptor.created_by = cre
-
-            # Convert to JSON
-            js = model.factory.toJSON(thickness_descriptor)
-            add_record_to_jsonl(js, td_file_path)
-
-            # Write to individual JSON file
-            filename = tdsafe
             file_path = os.path.join(output_dir, filename)
             with open(file_path, 'w') as individual_file:
                 rec = json.dumps(js)
