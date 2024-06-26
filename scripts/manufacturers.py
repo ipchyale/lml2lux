@@ -37,9 +37,6 @@ with open(man_file_path, 'w') as jsonl_file:
         equivs = thisman.manid.unique()
         assert len(equivs) == 1
         equiv = equivs[0]
-        
-        if not pd.isna(equiv):
-            continue
 
         mansafes = thisman.mansafe.unique()
         assert len(mansafes) == 1
@@ -47,21 +44,22 @@ with open(man_file_path, 'w') as jsonl_file:
 
         manufacturer = model.Group(ident=f'https://paperbase.xyz/records/{mansafe}', label=man)
         manufacturer.identified_by = vocab.PrimaryName(content=man)
-        manufacturer.classified_as = model.Type(ident="http://vocab.getty.edu/aat/300160084", 
-                                        label="Company")
+        manufacturer.classified_as = model.Type(ident="http://vocab.getty.edu/aat/300160084", label="Company")
+        
+        if pd.isna(equiv): # if there is no equivalent, create record
 
-        # Convert to JSON
-        js = model.factory.toJSON(manufacturer)
-        rec = json.dumps(js)
-        
-        # Write to JSONL file
-        jsonl_file.write(rec + '\n')
-        
-        # Write to individual JSON file
-        filename = mansafe
-        file_path = os.path.join(output_dir, filename)
-        with open(file_path, 'w') as individual_file:
-            individual_file.write(rec)
+            # Convert to JSON
+            js = model.factory.toJSON(manufacturer)
+            rec = json.dumps(js)
+            
+            # Write to JSONL file
+            jsonl_file.write(rec + '\n')
+            
+            # Write to individual JSON file
+            filename = mansafe
+            file_path = os.path.join(output_dir, filename)
+            with open(file_path, 'w') as individual_file:
+                individual_file.write(rec)
 
         # brans under this man
         brans = thisman.bran.loc[thisman.bran.notnull()].unique()
@@ -74,7 +72,7 @@ with open(man_file_path, 'w') as jsonl_file:
             assert len(equivs) == 1
             equiv = equivs[0]
 
-            if not pd.isna(equiv):
+            if not pd.isna(equiv): # if there is an equivalent, skip
                 continue
 
             bransafes = thisbran.bransafe.unique()
