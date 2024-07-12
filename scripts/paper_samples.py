@@ -2,6 +2,7 @@ import pandas as pd
 from cromulent import model, vocab
 import json
 import os
+import requests
 
 def record_label(smp):
     man = smp.fillna('[Indeterminate]').man
@@ -45,7 +46,10 @@ def name_constructor(smp):
 df = pd.read_pickle('notebooks/reconc.pkl')
 
 # Prevent serializer from crossing between records
-vocab.add_linked_art_boundary_check()
+#vocab.add_linked_art_boundary_check()
+
+output_dir = '/Users/damoncrockett/paperbase/lux/'
+os.makedirs(output_dir, exist_ok=True)
 
 with open('JSONL/paper_samples.jsonl', 'w') as f:
     for i in df.index:
@@ -123,12 +127,42 @@ with open('JSONL/paper_samples.jsonl', 'w') as f:
 
         if smp.td != '[weight unspecified]':
             paper.classified_as = model.Type(ident=f'https://paperbase.xyz/records/TD_{smp.tdsafe}.json', label=f'{smp.td}')
+        
+        iiif_manifest_url = f'https://manifests.collections.yale.edu/lml/obj/{smp.objectid}'
+        if requests.get(iiif_manifest_url).status_code == 200:
+        
+            iiif_manifest_ling = model.LinguisticObject(label=f'IIIF v3 manifest for {record_label(smp)}')
+
+            iiif_manifest_dig = model.DigitalObject(label=f'IIIF v3 manifest for {record_label(smp)}', format='application/ld+json')
+            iiif_manifest_dig.conforms_to = model.InformationObject(ident='http://iiif.io/api/presentation/3/context.json')
+            iiif_manifest_dig.access_point = model.DigitalObject(ident=iiif_manifest_url)
+            iiif_manifest_dig.identified_by = model.Name(content=f'IIIF v3 manifest for {record_label(smp)}')
+
+            iiif_manifest_ling.digitally_carried_by = iiif_manifest_dig
+            paper.subject_of = iiif_manifest_ling
+
+        iiif_thumbnail_url = f'https://media.collections.yale.edu/thumbnail/lml/obj/{smp.objectid}'
+        if requests.get(iiif_thumbnail_url).status_code == 200:
+            
+            iiif_thumbnail_vis = model.VisualItem(label='Primary Image')
+            
+            iiif_thumbnail_dig = model.DigitalObject(label='Primary Image')
+            iiif_thumbnail_dig.access_point = model.DigitalObject(ident=iiif_thumbnail_url)
+            iiif_thumbnail_dig.classified_as = model.Type(ident='http://vocab.getty.edu/aat/300215300', label='Digital Image')
+            
+            iiif_thumbnail_vis.digitally_shown_by = iiif_thumbnail_dig
+
+            paper.representation = iiif_thumbnail_vis
 
         if not pd.isna(smp.backp):
             paper.shows = model.VisualItem(ident=f'https://paperbase.xyz/records/BACKP_{smp.backpsafe}_MAN_{smp.mansafe}.json', label=f'{smp.man} {smp.backp}')
+
+        paper.member_of = model.Set(ident='https://paperbase.xyz/records/lmlcollection.json', label='Lens Media Lab Collection')
         
         js = model.factory.toJSON(paper)
         rec = json.dumps(js)
         f.write(rec + '\n')
 
-        # TODO: still need individual files for each record
+        filename = os.path.join(output_dir, f'PS_{catalog}.json')
+        with open(filename, 'w') as solofile:
+            solofile.write(rec)
